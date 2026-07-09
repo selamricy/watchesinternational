@@ -8,10 +8,10 @@ export default function ProductDetails() {
   const router = useRouter();
   const { id } = router.query;
 
-  // لو لسه الرابط بيحمل الـ id
+  // في حالة التحميل
   if (!id) return <div className="bg-black text-white min-h-screen text-center py-20">جاري التحميل...</div>;
 
-  // البحث عن المنتج (مطابقة الـ id كنص)
+  // البحث عن المنتج مع تحويل الـ id لنص لضمان المطابقة
   const product = products.find((item) => String(item.id) === String(id));
 
   if (!product) {
@@ -26,9 +26,7 @@ export default function ProductDetails() {
   }
 
   const whatsappMessage = encodeURIComponent(
-    `أهلاً يا أبو يوسف، محتاج أطلب: ${product.brand} - ${product.name}\nالجودة: ${
-      product.quality === 'mirror' ? 'ميرور أوريجينال' : 'هاي كوبي'
-    }\nالسعر: ${product.price.toLocaleString('ar-EG')} ج.م`
+    `أهلاً يا أبو يوسف، محتاج أطلب: ${product.brand} - ${product.name}\nالسعر: ${product.price.toLocaleString('ar-EG')} ج.م`
   );
 
   return (
@@ -41,7 +39,6 @@ export default function ProductDetails() {
       
       <main className="max-w-5xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          
           <div className="bg-[#111] border border-[#222] rounded-2xl overflow-hidden aspect-square flex items-center justify-center shadow-2xl">
             <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
           </div>
@@ -61,7 +58,7 @@ export default function ProductDetails() {
                 href={`https://wa.me/201142300919?text=${whatsappMessage}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full block text-center bg-[#D4AF37] text-black font-black py-4 rounded-xl hover:bg-yellow-600 transition-all text-lg shadow-xl shadow-[#D4AF37]/10 transform active:scale-95"
+                className="w-full block text-center bg-[#D4AF37] text-black font-black py-4 rounded-xl hover:bg-yellow-600 transition-all text-lg shadow-xl"
               >
                 تأكيد الطلب وحجز القطعة عبر واتساب
               </a>
@@ -73,7 +70,7 @@ export default function ProductDetails() {
   );
 }
 
-// دالات ضرورية عشان الـ 404 تختفي في Vercel
+// هذه الدوال هي "الحل السحري" لمنع الـ 404
 export async function getStaticPaths() {
   const paths = products.map((product) => ({
     params: { id: String(product.id) },
