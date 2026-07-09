@@ -1,107 +1,111 @@
-import Link from "next/link";
-import { products } from "../data/products";
+import React from 'react';
+import { Product } from '../data/products';
 
-export default function ProductCard() {
+// استقبال بيانات منتج واحد كـ Prop لعرضه بشكل ديناميكي
+interface ProductCardProps {
+  product: Product;
+}
+
+export default function ProductCard({ product }: ProductCardProps) {
+  // حساب نسبة الخصم تلقائياً إذا وجد سعر قديم
+  const discount = product.oldPrice 
+    ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) 
+    : 0;
+
+  // إعداد نص رسالة الواتساب التلقائية ليأتيك العميل من الإعلان بالموديل المطلوب بدقة
+  const whatsappMessage = encodeURIComponent(
+    `أهلاً يا أبو يوسف، محتاج أستفسر عن/أطلب: ${product.brand} - ${product.name}\nالجودة: ${
+      product.quality === 'mirror' ? 'ميرور أوريجينال' : product.quality === 'high-copy' ? 'هاي كوبي' : 'أوريجينال'
+    }\nالسعر: ${product.price} ج.م`
+  );
+
+  const whatsappLink = `https://wa.me/201142300919?text=${whatsappMessage}`;
+
   return (
-    <section
-      style={{
-        padding: "60px 20px",
-        background: "#f5f5f5",
-      }}
-    >
-      <h2
-        style={{
-          textAlign: "center",
-          marginBottom: "40px",
-          fontSize: "36px",
-        }}
-      >
-        أحدث الساعات
-      </h2>
+    <div className="bg-[#111] border border-[#222] rounded-2xl overflow-hidden group hover:border-[#D4AF37]/50 transition-all duration-300 flex flex-col justify-between shadow-xl">
+      
+      {/* منطقة الصورة والشارات (Badges) */}
+      <div className="relative overflow-hidden aspect-square bg-[#0a0a0a] flex items-center justify-center">
+        
+        {/* شارة الجودة المخصصة لزباين الـ Premium */}
+        {product.quality && (
+          <span className={`absolute top-3 right-3 z-10 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-md ${
+            product.quality === 'mirror' 
+              ? 'bg-[#D4AF37] text-black' // ميرور أوريجينال تأخذ اللون الذهبي الفاخر
+              : product.quality === 'high-copy'
+              ? 'bg-blue-600 text-white' // هاي كوبي تأخذ أزرق احترافي
+              : 'bg-emerald-600 text-white' // الأوريجينال تأخذ الأخضر
+          }`}>
+            {product.quality === 'mirror' ? 'Mirror' : product.quality === 'high-copy' ? 'High Copy' : 'Original'}
+          </span>
+        )}
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          flexWrap: "wrap",
-          gap: "30px",
-        }}
-      >
-        {products.map((product) => (
-          <Link
-            key={product.id}
-            href={`/product/${product.id}`}
-            style={{
-              textDecoration: "none",
-              color: "inherit",
-            }}
-          >
-            <div
-              style={{
-                width: "260px",
-                background: "#fff",
-                borderRadius: "15px",
-                overflow: "hidden",
-                boxShadow: "0 5px 15px rgba(0,0,0,.15)",
-                transition: ".3s",
-                cursor: "pointer",
-              }}
-            >
-              <img
-                src={product.image}
-                alt={product.name}
-                style={{
-                  width: "100%",
-                  height: "300px",
-                  objectFit: "cover",
-                }}
-              />
+        {/* شارة الخصم الجذابة للإعلانات المموّلة */}
+        {discount > 0 && (
+          <span className="absolute top-3 left-3 z-10 bg-red-600 text-white text-[11px] font-black px-2.5 py-1 rounded-md animate-pulse">
+            خصم {discount}%
+          </span>
+        )}
 
-              <div style={{ padding: "20px" }}>
-                <h3
-                  style={{
-                    marginBottom: "10px",
-                  }}
-                >
-                  {product.name}
-                </h3>
+        {/* صورة المنتج مع أنيميشين زووم خفيف عند تمرير الماوس */}
+        <img 
+          src={product.images[0]} 
+          alt={product.name}
+          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+        />
 
-                <p
-                  style={{
-                    color: "#666",
-                    marginBottom: "15px",
-                  }}
-                >
-                  {product.description}
-                </p>
-
-                <h2
-                  style={{
-                    color: "#d4af37",
-                    marginBottom: "15px",
-                  }}
-                >
-                  {product.price} جنيه
-                </h2>
-
-                <button
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    background: "#111",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                  }}
-                >
-                  أضف إلى السلة
-                </button>
-              </div>
-            </div>
-          </Link>
-        ))}
+        {/* في حالة نفاذ المخزون */}
+        {!product.inStock && (
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center">
+            <span className="text-white font-bold bg-black/50 px-4 py-2 rounded-lg border border-red-500 text-sm">
+              نفذت الكمية (متاح بالطلب)
+            </span>
+          </div>
+        )}
       </div>
-    </section>
+
+      {/* تفاصيل المنتج (Details) */}
+      <div className="p-4 sm:p-5 text-right flex-grow flex flex-col justify-between">
+        <div>
+          {/* اسم البراند والماركة */}
+          <span className="text-[#D4AF37] text-xs font-bold tracking-widest uppercase block mb-1">
+            {product.brand}
+          </span>
+          
+          {/* اسم الموديل */}
+          <h3 className="text-white text-base font-bold line-clamp-2 group-hover:text-[#D4AF37] transition-colors mb-2">
+            {product.name}
+          </h3>
+        </div>
+
+        {/* الأسعار وأزرار الشراء */}
+        <div className="mt-4">
+          <div className="flex items-baseline justify-start gap-3 flex-row-reverse mb-4">
+            {/* السعر الحالي */}
+            <span className="text-xl font-black text-white">
+              {product.price.toLocaleString('ar-EG')} ج.م
+            </span>
+            {/* السعر القديم إن وجد */}
+            {product.oldPrice && (
+              <span className="text-sm text-gray-500 line-through">
+                {product.oldPrice.toLocaleString('ar-EG')} ج.م
+              </span>
+            )}
+          </div>
+
+          {/* زر الأكشن: اطلب عبر واتساب فوراً */}
+          <a 
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-transparent border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black block text-center py-3 rounded-xl text-sm font-bold transition-all duration-300 transform active:scale-95"
+          >
+            اطلب الآن عبر واتساب
+          </a>
+        </div>
+      </div>
+
+    </div>
   );
 }
