@@ -8,15 +8,18 @@ export default function ProductDetails() {
   const router = useRouter();
   const { id } = router.query;
 
-  // الإصلاح السحري: البحث عن الـ id كنص (String) مباشرة بدون تحويله لرقم
-  const product = products.find((item) => item.id === id);
+  // لو لسه الرابط بيحمل الـ id
+  if (!id) return <div className="bg-black text-white min-h-screen text-center py-20">جاري التحميل...</div>;
+
+  // البحث عن المنتج (مطابقة الـ id كنص)
+  const product = products.find((item) => String(item.id) === String(id));
 
   if (!product) {
     return (
       <div className="bg-black text-white min-h-screen text-right flex flex-col" dir="rtl">
         <Navbar />
         <div className="text-center py-20 flex-grow">
-          <h2 className="text-xl font-bold text-gray-500">جاري تحميل تفاصيل الموديل...</h2>
+          <h2 className="text-xl font-bold text-gray-500">عذراً، هذا الموديل غير موجود.</h2>
         </div>
       </div>
     );
@@ -24,8 +27,8 @@ export default function ProductDetails() {
 
   const whatsappMessage = encodeURIComponent(
     `أهلاً يا أبو يوسف، محتاج أطلب: ${product.brand} - ${product.name}\nالجودة: ${
-      product.quality === 'mirror' ? 'ميرور أوريجينال' : product.quality === 'high-copy' ? 'هاي كوبي' : 'أوريجينال'
-    }\nالسعر: ${product.price} ج.م`
+      product.quality === 'mirror' ? 'ميرور أوريجينال' : 'هاي كوبي'
+    }\nالسعر: ${product.price.toLocaleString('ar-EG')} ج.م`
   );
 
   return (
@@ -39,23 +42,14 @@ export default function ProductDetails() {
       <main className="max-w-5xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           
-          {/* صورة المنتج الفاخرة */}
           <div className="bg-[#111] border border-[#222] rounded-2xl overflow-hidden aspect-square flex items-center justify-center shadow-2xl">
             <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
           </div>
 
-          {/* تفاصيل الموديل والأكشن */}
           <div className="flex flex-col h-full justify-between py-4">
             <div>
               <span className="text-[#D4AF37] font-bold uppercase tracking-widest text-sm">{product.brand}</span>
               <h1 className="text-2xl sm:text-4xl font-black mt-2 mb-4 text-white">{product.name}</h1>
-              
-              {product.quality && (
-                <span className="inline-block bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-xs font-bold px-4 py-1.5 rounded-full mb-6">
-                  {product.quality === 'mirror' ? 'Mirror Original (ماكينة سويسري)' : 'High Copy (درجة أولى)'}
-                </span>
-              )}
-
               <p className="text-gray-400 leading-relaxed mb-8 text-base sm:text-lg">{product.description}</p>
             </div>
 
@@ -63,7 +57,6 @@ export default function ProductDetails() {
               <div className="text-3xl font-black text-white mb-6 border-t border-[#1a1a1a] pt-6">
                 {product.price.toLocaleString('ar-EG')} ج.م
               </div>
-
               <a
                 href={`https://wa.me/201142300919?text=${whatsappMessage}`}
                 target="_blank"
@@ -74,9 +67,20 @@ export default function ProductDetails() {
               </a>
             </div>
           </div>
-
         </div>
       </main>
     </div>
   );
+}
+
+// دالات ضرورية عشان الـ 404 تختفي في Vercel
+export async function getStaticPaths() {
+  const paths = products.map((product) => ({
+    params: { id: String(product.id) },
+  }));
+  return { paths, fallback: false };
+}
+
+export async function getStaticProps({ params }: any) {
+  return { props: {} };
 }
